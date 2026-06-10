@@ -1,0 +1,3213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grid To Glory: F1 Nation</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-yellow: #CEF409;
+    --neon-purple: #9B5CF6;
+    --neon-purple-bright: #C084FC;
+    --bg-primary: #0A0A0C;
+    --bg-secondary: #111115;
+    --bg-card: #16161C;
+    --bg-elevated: #1E1E27;
+    --border: rgba(255,255,255,0.07);
+    --border-accent: rgba(206,244,9,0.2);
+    --text-primary: #F0F0F5;
+    --text-secondary: #8888A0;
+    --text-muted: #555568;
+    --ferrari: #E8002D;
+    --mclaren: #FF8000;
+    --mercedes: #00D2BE;
+    --redbull: #3671C6;
+    --aston: #358C75;
+    --williams: #64C4FF;
+    --alpine: #0093CC;
+    --haas: #B6BABD;
+    --bulls: #6692FF;
+    --sauber: #00E701;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* SCREEN SYSTEM */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ============================
+     AUTH SCREEN
+  ============================ */
+  #screen-auth {
+    background: var(--bg-primary);
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 80%, rgba(206,244,9,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 30% at 80% 20%, rgba(155,92,246,0.06) 0%, transparent 50%);
+  }
+
+  .auth-grid-lines {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(206,244,9,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(206,244,9,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .auth-container {
+    position: relative; z-index: 10;
+    width: 100%; max-width: 480px;
+    padding: 2rem;
+  }
+
+  .logo-block {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .logo-emblem {
+    width: 80px; height: 80px;
+    margin: 0 auto 1rem;
+    position: relative;
+  }
+
+  .logo-hex {
+    width: 80px; height: 80px;
+    background: var(--neon-yellow);
+    clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 30px rgba(206,244,9,0.4);
+  }
+
+  .logo-hex span {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: 22px;
+    color: #000;
+    letter-spacing: -1px;
+  }
+
+  .logo-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .logo-title span { color: var(--neon-purple-bright); }
+
+  .logo-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 0.4rem;
+  }
+
+  .auth-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--neon-yellow), transparent);
+  }
+
+  .auth-tabs {
+    display: flex;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 1.5rem;
+  }
+
+  .auth-tab {
+    flex: 1; padding: 0.6rem;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    border: none; cursor: pointer;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+  }
+
+  .auth-tab.active {
+    background: var(--neon-yellow);
+    color: #000;
+  }
+
+  .auth-form { display: none; }
+  .auth-form.active { display: block; }
+
+  .form-group { margin-bottom: 1rem; }
+
+  .form-label {
+    display: block;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+  }
+
+  .form-input {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus { border-color: var(--neon-yellow); }
+
+  .team-select-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .team-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .team-card:hover { border-color: rgba(255,255,255,0.2); }
+  .team-card.selected { border-color: var(--neon-purple-bright); background: rgba(206,244,9,0.05); }
+
+  .team-dot {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    margin: 0 auto 0.3rem;
+  }
+
+  .team-card-name {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    line-height: 1.2;
+  }
+
+  .team-card.selected .team-card-name { color: var(--neon-purple-bright); }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--neon-yellow);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 0.85rem;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: all 0.2s;
+    box-shadow: 0 0 20px rgba(206,244,9,0.3);
+  }
+
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(206,244,9,0.5); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .error-msg {
+    background: rgba(220,50,50,0.1);
+    border: 1px solid rgba(220,50,50,0.3);
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+    color: #FF6B6B;
+    margin-top: 0.75rem;
+    display: none;
+  }
+
+  .error-msg.visible { display: block; }
+
+  /* ============================
+     ONBOARDING
+  ============================ */
+  #screen-onboard {
+    background: var(--bg-primary);
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .onboard-container {
+    max-width: 560px; width: 100%;
+  }
+
+  .onboard-step { display: none; }
+  .onboard-step.active { display: block; }
+
+  .onboard-icon-large {
+    width: 80px; height: 80px;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1.5rem;
+  }
+
+  .onboard-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .onboard-desc {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+
+  .onboard-dots {
+    display: flex; gap: 8px;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+
+  .onboard-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s;
+  }
+
+  .onboard-dot.active {
+    width: 24px;
+    border-radius: 4px;
+    background: var(--neon-yellow);
+  }
+
+  /* ============================
+     MAIN APP
+  ============================ */
+  #screen-app {
+    flex-direction: row;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 240px;
+    min-height: 100vh;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed; top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .sidebar-logo {
+    padding: 1.25rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+
+  .sidebar-hex {
+    width: 36px; height: 36px;
+    background: var(--neon-yellow);
+    clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sidebar-hex span {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px; font-weight: 900; color: #000;
+  }
+
+  .sidebar-logo-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-primary);
+  }
+
+  .sidebar-logo-text small {
+    display: block;
+    color: var(--neon-yellow);
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 1rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0.75rem 0.5rem 0.25rem;
+    font-weight: 600;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    position: relative;
+  }
+
+  .nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+  .nav-item.active {
+    background: rgba(206,244,9,0.08);
+    border-color: rgba(206,244,9,0.15);
+    color: var(--neon-yellow);
+  }
+
+  .nav-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    background: var(--bg-elevated);
+  }
+
+  .nav-item.active .nav-icon { background: rgba(206,244,9,0.15); }
+
+  .nav-badge {
+    margin-left: auto;
+    background: var(--neon-yellow);
+    color: #000;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 10px;
+  }
+
+  .nav-live {
+    margin-left: auto;
+    background: #E8002D;
+    color: #fff;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    animation: pulseLive 2s infinite;
+  }
+
+  @keyframes pulseLive {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .sidebar-profile {
+    border-top: 1px solid var(--border);
+    padding: 0.75rem;
+  }
+
+  .profile-mini {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .profile-mini:hover { background: var(--bg-elevated); }
+
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    border: 2px solid var(--neon-yellow);
+  }
+
+  .profile-mini-info { flex: 1; min-width: 0; }
+
+  .profile-mini-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .profile-mini-rank {
+    font-size: 0.65rem;
+    color: var(--neon-yellow);
+    letter-spacing: 0.05em;
+  }
+
+  /* MAIN CONTENT */
+  .main-content {
+    margin-left: 240px;
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+    position: sticky; top: 0; z-index: 50;
+  }
+
+  .topbar-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .topbar-title span { color: var(--neon-purple-bright); }
+
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 0.75rem; }
+
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .icon-btn:hover { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+
+  .notif-dot {
+    position: absolute; top: 6px; right: 6px;
+    width: 7px; height: 7px;
+    background: var(--neon-yellow);
+    border-radius: 50%;
+    border: 1.5px solid var(--bg-secondary);
+  }
+
+  /* PAGE SECTIONS */
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+
+  .page-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .page-inner.full { grid-template-columns: 1fr; }
+  .page-inner.wide { grid-template-columns: 1fr 380px; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+
+  .card-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-primary);
+  }
+
+  .card-body { padding: 1.25rem; }
+
+  /* POST COMPOSER */
+  .composer {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .composer-row {
+    display: flex; gap: 0.75rem; align-items: flex-start;
+  }
+
+  .composer-input {
+    flex: 1;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    resize: none;
+    outline: none;
+    min-height: 80px;
+    transition: border-color 0.2s;
+  }
+
+  .composer-input:focus { border-color: var(--neon-yellow); }
+  .composer-input::placeholder { color: var(--text-muted); }
+
+  .composer-actions {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .composer-btn {
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .composer-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text-primary); }
+
+  .post-btn {
+    margin-left: auto;
+    background: var(--neon-yellow);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1.25rem;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .post-btn:hover { box-shadow: 0 0 15px rgba(206,244,9,0.4); }
+
+  /* FEED POSTS */
+  .post {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s;
+  }
+
+  .post:hover { border-color: rgba(255,255,255,0.12); }
+
+  .post-header {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .post-meta { flex: 1; min-width: 0; }
+
+  .post-username {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+
+  .team-tag {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .post-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  .post-content {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+  }
+
+  .post-image {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .post-image-placeholder {
+    background: var(--bg-elevated);
+    height: 200px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    font-size: 2rem;
+    border-radius: 8px;
+  }
+
+  .post-actions {
+    display: flex; gap: 1.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .post-action {
+    display: flex; align-items: center; gap: 0.4rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: color 0.15s;
+    border: none; background: none;
+    font-family: 'Rajdhani', sans-serif;
+    padding: 0;
+  }
+
+  .post-action:hover { color: var(--neon-yellow); }
+  .post-action.liked { color: var(--neon-yellow); }
+
+  /* SIDEBAR WIDGETS */
+  .widget {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .widget-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--text-secondary);
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+
+  .widget-body { padding: 0.75rem 1rem; }
+
+  .trending-item {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .trending-item:last-child { border-bottom: none; }
+  .trending-item:hover .trending-tag { color: var(--neon-yellow); }
+
+  .trending-tag {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    transition: color 0.15s;
+  }
+
+  .trending-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  /* COUNTDOWN */
+  .countdown-widget {
+    background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
+    border: 1px solid var(--border-accent);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .countdown-widget::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--neon-yellow);
+  }
+
+  .countdown-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--neon-purple-bright);
+    margin-bottom: 0.4rem;
+  }
+
+  .countdown-race {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  .countdown-timer {
+    display: flex; gap: 0.75rem;
+  }
+
+  .timer-unit {
+    text-align: center;
+    flex: 1;
+  }
+
+  .timer-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--neon-purple-bright);
+    display: block;
+    line-height: 1;
+  }
+
+  .timer-label {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* TEAM GARAGES */
+  .garage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  .garage-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .garage-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+
+  .garage-card.user-team { border-color: var(--neon-yellow); }
+
+  .garage-header {
+    height: 80px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .garage-header::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.4);
+  }
+
+  .garage-header-text { position: relative; z-index: 1; }
+
+  .garage-body { padding: 1rem; }
+
+  .garage-name {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+
+  .garage-stats {
+    display: flex; gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  /* TEAM RADIO (DMs) */
+  .dm-layout {
+    display: flex;
+    height: calc(100vh - 60px);
+  }
+
+  .dm-list {
+    width: 280px;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  .dm-list-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .dm-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .dm-item:hover { background: var(--bg-elevated); }
+  .dm-item.active { background: rgba(206,244,9,0.05); border-left: 2px solid var(--neon-yellow); }
+
+  .dm-info { flex: 1; min-width: 0; }
+
+  .dm-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 1px;
+  }
+
+  .dm-preview {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dm-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  .dm-chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dm-chat-header {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+
+  .dm-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .message {
+    max-width: 65%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .message.mine { align-self: flex-end; align-items: flex-end; }
+  .message.theirs { align-self: flex-start; }
+
+  .message-bubble {
+    padding: 0.65rem 1rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .message.mine .message-bubble {
+    background: var(--neon-yellow);
+    color: #000;
+    font-weight: 500;
+    border-radius: 12px 12px 4px 12px;
+  }
+
+  .message.theirs .message-bubble {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 12px 12px 12px 4px;
+  }
+
+  .message-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+    padding: 0 4px;
+  }
+
+  .voice-note {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 12px 12px 12px 4px;
+    cursor: pointer;
+    min-width: 200px;
+  }
+
+  .voice-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--neon-yellow);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    color: #000;
+    flex-shrink: 0;
+  }
+
+  .voice-wave {
+    flex: 1;
+    height: 24px;
+    display: flex; align-items: center; gap: 2px;
+  }
+
+  .wave-bar {
+    background: var(--neon-purple);
+    border-radius: 2px;
+    width: 3px;
+    animation: waveAnim 1.2s ease-in-out infinite;
+  }
+
+  @keyframes waveAnim {
+    0%, 100% { height: 6px; }
+    50% { height: var(--h, 18px); }
+  }
+
+  .dm-input-area {
+    padding: 0.85rem 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+
+  .dm-input {
+    flex: 1;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    color: var(--text-primary);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+  }
+
+  .dm-input:focus { border-color: var(--neon-yellow); }
+
+  .send-btn {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--neon-yellow);
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #000;
+    transition: all 0.15s;
+  }
+
+  .send-btn:hover { box-shadow: 0 0 12px rgba(206,244,9,0.5); }
+
+  /* LIGHTS OUT */
+  .lights-out-hero {
+    background: linear-gradient(180deg, #0A0A0C 0%, #16161C 100%);
+    border: 1px solid rgba(155,92,246,0.3);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .lights-out-hero::before {
+    content: '🏎️';
+    position: absolute;
+    font-size: 8rem;
+    opacity: 0.05;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .lights-row {
+    display: flex; gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .race-light {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #1A0000;
+    border: 2px solid #300000;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+    transition: all 0.3s;
+  }
+
+  .race-light.on {
+    background: #E8002D;
+    border-color: #FF3355;
+    box-shadow: 0 0 15px rgba(232,0,45,0.8), inset 0 0 5px rgba(255,100,100,0.5);
+  }
+
+  .session-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .session-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .session-item:hover { border-color: rgba(255,255,255,0.15); }
+  .session-item.live { border-color: #E8002D; background: rgba(232,0,45,0.03); }
+  .session-item.upcoming { border-color: var(--border-accent); }
+
+  .session-type {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    width: 70px;
+    text-align: center;
+  }
+
+  .session-info { flex: 1; }
+
+  .session-name { font-weight: 600; font-size: 0.95rem; }
+  .session-time { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+  .session-status {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+
+  .status-live { background: rgba(232,0,45,0.15); color: #E8002D; }
+  .status-upcoming { background: rgba(206,244,9,0.1); color: var(--neon-purple-bright); }
+  .status-done { background: var(--bg-elevated); color: var(--text-muted); }
+
+  /* RACE CONTROL */
+  .rc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  .rc-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .rc-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.12); }
+
+  .rc-card-icon {
+    font-size: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .rc-card-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+    color: var(--text-primary);
+  }
+
+  .rc-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* PROFILE */
+  .profile-hero {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .profile-banner {
+    height: 120px;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 1rem;
+    position: relative;
+  }
+
+  .profile-info-row {
+    padding: 1rem 1.5rem 1.5rem;
+    display: flex; align-items: flex-end; gap: 1rem;
+  }
+
+  .profile-avatar-large {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 2rem;
+    border: 4px solid var(--bg-card);
+    margin-top: -40px;
+    flex-shrink: 0;
+  }
+
+  .profile-display-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  .profile-username {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 2px;
+  }
+
+  .rank-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(206,244,9,0.1);
+    border: 1px solid rgba(155,92,246,0.3);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--neon-purple-bright);
+    letter-spacing: 0.08em;
+    margin-top: 0.4rem;
+  }
+
+  .stats-row {
+    display: flex; gap: 1.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .stat-item { text-align: center; }
+
+  .stat-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* TELEMETRY BAR */
+  .telemetry-bar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1.5rem;
+    display: flex; align-items: center; gap: 2rem;
+    overflow-x: auto;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .tele-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    color: var(--text-muted);
+  }
+
+  .tele-value { color: var(--neon-yellow); font-family: 'Orbitron', monospace; font-weight: 600; }
+
+  /* NOTIFICATION TOAST */
+  .toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-accent);
+    border-radius: 10px;
+    padding: 0.85rem 1.25rem;
+    display: flex; align-items: center; gap: 0.75rem;
+    z-index: 9999;
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    min-width: 280px;
+    max-width: 360px;
+  }
+
+  .toast.show { transform: translateX(0); }
+
+  .toast-icon { font-size: 1.25rem; }
+
+  .toast-content { flex: 1; }
+
+  .toast-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 1px;
+  }
+
+  .toast-desc {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+
+  /* PRIVATE GARAGES */
+  .private-garage-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: 0.85rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .private-garage-item:hover { border-color: rgba(255,255,255,0.12); }
+
+  .garage-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    background: var(--bg-elevated);
+    flex-shrink: 0;
+  }
+
+  .garage-item-info { flex: 1; }
+
+  .garage-item-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+  }
+
+  .garage-item-meta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    display: none;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 460px;
+    width: 90%;
+    position: relative;
+  }
+
+  .modal-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    padding-right: 2rem;
+  }
+
+  .modal-close {
+    position: absolute; top: 1.25rem; right: 1.25rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 1rem;
+  }
+
+  .modal-close:hover { color: var(--text-primary); }
+
+  /* ANIMATIONS */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in { animation: fadeIn 0.3s ease forwards; }
+
+  /* ============================
+     BOTTOM NAV — mobile only, hidden on desktop
+  ============================ */
+  .bottom-nav {
+    display: none; /* hidden by default; shown only in mobile media query */
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    z-index: 200;
+    padding: 0 0 env(safe-area-inset-bottom, 0);
+  }
+
+  .bottom-nav-inner {
+    display: flex;
+    justify-content: space-around;
+    align-items: stretch;
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55rem 0.25rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    gap: 3px;
+    transition: color 0.15s;
+    border: none;
+    background: none;
+    font-family: 'Rajdhani', sans-serif;
+    position: relative;
+  }
+
+  .bottom-nav-item .bn-icon { font-size: 1.3rem; line-height: 1; }
+  .bottom-nav-item.active { color: var(--neon-yellow); }
+
+  .bottom-nav-item .bn-badge {
+    position: absolute;
+    top: 6px; right: calc(50% - 16px);
+    width: 14px; height: 14px;
+    background: var(--neon-yellow);
+    color: #000;
+    font-size: 0.55rem;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid var(--bg-secondary);
+  }
+
+  .bn-live-dot {
+    position: absolute;
+    top: 6px; right: calc(50% - 14px);
+    width: 8px; height: 8px;
+    background: #E8002D;
+    border-radius: 50%;
+    border: 1.5px solid var(--bg-secondary);
+    animation: pulseLive 2s infinite;
+  }
+
+  /* Sidebar overlay — only relevant on mobile, hidden everywhere else */
+  .sidebar-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 150;
+  }
+
+  /* Hamburger — NEVER shown (desktop uses sidebar, mobile uses bottom nav) */
+  .hamburger-btn { display: none !important; }
+
+  /* ============================
+     DESKTOP (≥641px)
+     Sidebar always visible, bottom nav hidden, full layouts
+  ============================ */
+  @media (min-width: 641px) {
+    /* Sidebar always on screen, never off-canvas */
+    .sidebar {
+      transform: none !important;
+      position: fixed;
+    }
+
+    /* Main content offset by sidebar width */
+    .main-content { margin-left: 240px; }
+
+    /* Bottom nav never shown */
+    .bottom-nav { display: none !important; }
+
+    /* Sidebar overlay never shown */
+    .sidebar-overlay { display: none !important; }
+
+    /* Telemetry bar visible */
+    .telemetry-bar { display: flex; }
+  }
+
+  /* ============================
+     MOBILE (≤640px)
+     No sidebar, bottom nav only, single-column layouts
+  ============================ */
+  @media (max-width: 640px) {
+    /* ── Sidebar: completely hidden, no overlay, no toggle ── */
+    .sidebar { display: none !important; }
+    .sidebar-overlay { display: none !important; }
+
+    /* ── Main content: full width, room for bottom nav ── */
+    .main-content {
+      margin-left: 0;
+      padding-bottom: 70px;
+    }
+
+    /* ── Bottom nav: visible ── */
+    .bottom-nav { display: block; }
+
+    /* ── Topbar: no hamburger shown ── */
+    .topbar { padding: 0.6rem 0.9rem; }
+    .topbar-title { font-size: 0.85rem; }
+
+    /* ── Telemetry bar: hidden ── */
+    .telemetry-bar { display: none; }
+
+    /* ── Auth screen ── */
+    .auth-container { padding: 1.25rem; }
+    .logo-block { margin-bottom: 1.5rem; }
+    .logo-hex { width: 64px; height: 64px; }
+    .logo-emblem { width: 64px; height: 64px; }
+    .logo-hex span { font-size: 17px; }
+    .logo-title { font-size: 1.2rem; }
+    .auth-card { padding: 1.25rem; }
+    .team-select-grid { grid-template-columns: repeat(5, 1fr); gap: 0.35rem; }
+    .team-dot { width: 16px; height: 16px; }
+    .team-card-name { font-size: 0.55rem; }
+
+    /* ── Onboarding ── */
+    #screen-onboard { padding: 1.25rem; }
+    .onboard-title { font-size: 1.1rem; }
+    .onboard-icon-large { width: 64px; height: 64px; font-size: 1.6rem; }
+
+    /* ── Layouts: single column ── */
+    .page-inner,
+    .page-inner.wide { grid-template-columns: 1fr; padding: 0.75rem; gap: 0.75rem; }
+
+    /* ── Countdown ── */
+    .countdown-widget { padding: 1rem; }
+    .timer-num { font-size: 1.2rem; }
+
+    /* ── Composer ── */
+    .composer { padding: 0.75rem; }
+    .composer-actions { flex-wrap: wrap; gap: 0.35rem; }
+    .composer-btn { font-size: 0.78rem; padding: 0.35rem 0.6rem; }
+
+    /* ── Posts ── */
+    .post { padding: 0.85rem; }
+    .post-actions { gap: 0.85rem; }
+
+    /* ── Team Radio: stack DM list above chat ── */
+    .dm-layout { flex-direction: column; height: auto; min-height: calc(100vh - 130px); }
+    .dm-list {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .dm-chat { min-height: 400px; }
+    .dm-messages { min-height: 280px; }
+
+    /* ── Garages ── */
+    .garage-grid { grid-template-columns: 1fr 1fr; padding: 0.75rem; gap: 0.75rem; }
+    .garage-header { height: 60px; }
+    .garage-header-text { font-size: 0.75rem !important; }
+
+    /* ── Race Control ── */
+    .rc-grid { grid-template-columns: 1fr 1fr; padding: 0.75rem; gap: 0.75rem; }
+    .rc-card { padding: 0.85rem; }
+    .rc-card-icon { font-size: 1.25rem; margin-bottom: 0.5rem; }
+    .rc-card-title { font-size: 0.62rem; }
+    .rc-card-desc { font-size: 0.75rem; }
+
+    /* ── Profile ── */
+    .profile-info-row { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 0.75rem 1rem 1rem; }
+    .profile-avatar-large { margin-top: -30px; width: 64px !important; height: 64px !important; font-size: 1.5rem !important; }
+    .profile-display-name { font-size: 1rem; }
+    .stats-row { gap: 1rem; }
+
+    /* ── Sessions ── */
+    .session-item { padding: 0.75rem 1rem; gap: 0.75rem; }
+    .session-type { width: 50px; font-size: 0.55rem; }
+
+    /* ── Misc ── */
+    .widget { margin-bottom: 0.75rem; }
+    .private-garage-item { padding: 0.75rem 1rem; }
+
+    /* ── Toast sits above bottom nav ── */
+    .toast { left: 1rem; right: 1rem; bottom: 80px; min-width: unset; max-width: unset; }
+
+    /* ── Modal ── */
+    .modal { padding: 1.25rem; margin: 0 1rem; }
+  }
+
+  /* ── Very small phones (≤380px) ── */
+  @media (max-width: 380px) {
+    .garage-grid { grid-template-columns: 1fr; }
+    .rc-grid { grid-template-columns: 1fr; }
+    .bottom-nav-item { font-size: 0.52rem; }
+    .bottom-nav-item .bn-icon { font-size: 1.15rem; }
+  }
+
+  /* DRIVER SELECTION */
+  .driver-select {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .driver-select:focus { border-color: var(--neon-purple-bright); }
+
+  option { background: var(--bg-secondary); }
+
+  /* USER BADGE */
+  .user-badge {
+    background: rgba(206,244,9,0.15);
+    border: 1px solid rgba(155,92,246,0.3);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.6rem;
+    color: var(--neon-purple-bright);
+    font-weight: 600;
+  }
+
+  /* RADIO SECTION HEADER */
+  .section-head {
+    padding: 1.25rem 1.5rem 0.75rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .section-head-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .section-head-action {
+    font-size: 0.8rem;
+    color: var(--neon-yellow);
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .section-head-action:hover { opacity: 0.7; }
+
+  .btn-secondary {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 1.25rem;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: all 0.15s;
+  }
+
+  .btn-secondary:hover { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+
+  /* CARBON TEXTURE */
+  .carbon {
+    background-image:
+      repeating-linear-gradient(
+        45deg,
+        rgba(255,255,255,0.01) 0px,
+        rgba(255,255,255,0.01) 1px,
+        transparent 1px,
+        transparent 8px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        rgba(255,255,255,0.01) 0px,
+        rgba(255,255,255,0.01) 1px,
+        transparent 1px,
+        transparent 8px
+      );
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== AUTH SCREEN ==================== -->
+<div id="screen-auth" class="screen active">
+  <div class="auth-bg"></div>
+  <div class="auth-grid-lines"></div>
+
+  <div class="auth-container fade-in">
+    <div class="logo-block">
+      <div class="logo-emblem">
+        <div class="logo-hex"><span>G2G</span></div>
+      </div>
+      <div class="logo-title">GRID TO <span>GLORY</span></div>
+      <div style="font-family:'Orbitron',monospace;font-size:0.7rem;color:var(--neon-purple-bright);letter-spacing:0.15em;margin-top:2px;">F1 NATION</div>
+      <div class="logo-subtitle">The Digital Home Of Racing Fans</div>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">LOG IN</button>
+        <button class="auth-tab" onclick="switchAuthTab('signup')">SIGN UP</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="form-login" class="auth-form active">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="login-email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="login-password" placeholder="••••••••">
+        </div>
+        <div class="error-msg" id="login-error">Invalid email or password. Please try again.</div>
+        <button class="btn-primary" onclick="handleLogin()">LIGHTS OUT — ENTER THE GRID</button>
+      </div>
+
+      <!-- SIGNUP FORM -->
+      <div id="form-signup" class="auth-form">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="signup-email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="signup-username" placeholder="choose_a_callsign">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="signup-password" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Favourite Driver</label>
+          <select class="driver-select" id="signup-driver">
+            <option value="">— Select Driver —</option>
+            <optgroup label="Ferrari">
+              <option value="Charles Leclerc|16">Charles Leclerc · #16</option>
+              <option value="Lewis Hamilton|44">Lewis Hamilton · #44</option>
+            </optgroup>
+            <optgroup label="McLaren">
+              <option value="Lando Norris|4">Lando Norris · #4</option>
+              <option value="Oscar Piastri|81">Oscar Piastri · #81</option>
+            </optgroup>
+            <optgroup label="Red Bull">
+              <option value="Max Verstappen|1">Max Verstappen · #1</option>
+              <option value="Yuki Tsunoda|22">Yuki Tsunoda · #22</option>
+            </optgroup>
+            <optgroup label="Mercedes">
+              <option value="George Russell|63">George Russell · #63</option>
+              <option value="Kimi Antonelli|12">Kimi Antonelli · #12</option>
+            </optgroup>
+            <optgroup label="Aston Martin">
+              <option value="Fernando Alonso|14">Fernando Alonso · #14</option>
+              <option value="Lance Stroll|18">Lance Stroll · #18</option>
+            </optgroup>
+            <optgroup label="Alpine">
+              <option value="Pierre Gasly|10">Pierre Gasly · #10</option>
+              <option value="Jack Doohan|7">Jack Doohan · #7</option>
+            </optgroup>
+            <optgroup label="Williams">
+              <option value="Alexander Albon|23">Alexander Albon · #23</option>
+              <option value="Carlos Sainz|55">Carlos Sainz · #55</option>
+            </optgroup>
+            <optgroup label="Haas">
+              <option value="Nico Hülkenberg|27">Nico Hülkenberg · #27</option>
+              <option value="Esteban Ocon|31">Esteban Ocon · #31</option>
+            </optgroup>
+            <optgroup label="Racing Bulls">
+              <option value="Isack Hadjar|6">Isack Hadjar · #6</option>
+              <option value="Liam Lawson|30">Liam Lawson · #30</option>
+            </optgroup>
+            <optgroup label="Audi">
+              <option value="Nico Hülkenberg|27">Nico Hülkenberg · #27</option>
+              <option value="Gabriel Bortoleto|5">Gabriel Bortoleto · #5</option>
+            </optgroup>
+            <optgroup label="Cadillac">
+              <option value="Colton Herta|99">Colton Herta · #99</option>
+              <option value="Marcus Armstrong|45">Marcus Armstrong · #45</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Choose Your Team</label>
+          <div class="team-select-grid" id="team-grid">
+            <div class="team-card" onclick="selectTeam('Ferrari','#E8002D',this)">
+              <div class="team-dot" style="background:#E8002D;"></div>
+              <div class="team-card-name">Ferrari</div>
+            </div>
+            <div class="team-card" onclick="selectTeam('McLaren','#FF8000',this)">
+              <div class="team-dot" style="background:#FF8000;"></div>
+              <div class="team-card-name">McLaren</div>
+            </div>
+            <div class="team-card" onclick="selectTeam('Mercedes','#00D2BE',this)">
+              <div class="team-dot" style="background:#00D2BE;"></div>
+              <div class="team-card-name">Mercedes</div>
+            </div>
+            <div class="team-card" onclick="selectTeam('Red Bull','#3671C6',this)">
+              <div class="team-dot" style="background:#3671C6;"></div>
+              <div class="team-card-name">Red Bull</div>
+            </div>
+            <div class="team-card" onclick="selectTeam('Aston Martin','#358C75',this)">
+              <div class="team-dot" style="background:#358C75;"></div>
+              <div class="team-card-name">Aston Martin</div>
+            </div>
+            <div class="team-card" onclick="selectTeam('Williams','#64C4FF',this)">
+              <div class="team-dot" style="background:#64C4FF;"></div>
+              <div class="team-card-name">Williams</div>
+            </div>
+            <div class="team-card" onclick="selectTeam('Alpine','#0093CC',this)">
+              <div class="team-dot" style="background:#0093CC;"></div>
+              <div class="team-card-name">Alpine</div>
+            </div>
+            <div class="team-card" onclick="selectTeam('Haas','#B6BABD',this)">
+              <div class="team-dot" style="background:#B6BABD;"></div>
+              <div class="team-card-name">Haas</div>
+            </div>
+            <div class="team-card" onclick="selectTeam('Racing Bulls','#6692FF',this)">
+              <div class="team-dot" style="background:#6692FF;"></div>
+              <div class="team-card-name">Racing Bulls</div>
+            </div>
+            <div class="team-card" onclick="selectTeam('Audi','#BB0000',this)">
+              <div class="team-dot" style="background:#BB0000;"></div>
+              <div class="team-card-name">Audi</div>
+            </div>
+            <div class="team-card" onclick="selectTeam('Cadillac','#1B1BFF',this)">
+              <div class="team-dot" style="background:#1B1BFF;"></div>
+              <div class="team-card-name">Cadillac</div>
+            </div>
+          </div>
+        </div>
+        <div class="error-msg" id="signup-error"></div>
+        <button class="btn-primary" onclick="handleSignup()">JOIN THE GRID</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ONBOARDING SCREEN ==================== -->
+<div id="screen-onboard" class="screen">
+  <div class="onboard-container fade-in">
+    <div class="onboard-dots" id="onboard-dots">
+      <div class="onboard-dot active"></div>
+      <div class="onboard-dot"></div>
+      <div class="onboard-dot"></div>
+      <div class="onboard-dot"></div>
+    </div>
+
+    <div class="onboard-step active" id="ob-step-0">
+      <div class="onboard-icon-large" style="background:rgba(206,244,9,0.1);">🏁</div>
+      <div class="onboard-title">Welcome to <span style="color:var(--neon-purple-bright)">The Grid</span></div>
+      <div class="onboard-desc">Your public social feed. Post race reactions, memes, predictions and breaking news. Every fan, every team, one feed.</div>
+    </div>
+    <div class="onboard-step" id="ob-step-1">
+      <div class="onboard-icon-large" style="background:rgba(206,244,9,0.1);">🔧</div>
+      <div class="onboard-title">Your <span style="color:var(--neon-purple-bright)">Team Garage</span></div>
+      <div class="onboard-desc">You've been placed in your team's community. Connect with fans who share your passion. Discuss strategies, share moments and live race weekends together.</div>
+    </div>
+    <div class="onboard-step" id="ob-step-2">
+      <div class="onboard-icon-large" style="background:rgba(206,244,9,0.08);">📻</div>
+      <div class="onboard-title">Team <span style="color:var(--neon-purple-bright)">Radio</span></div>
+      <div class="onboard-desc">Direct 1-on-1 messaging with other fans. Send text and voice notes — inspired by real racing communication.</div>
+    </div>
+    <div class="onboard-step" id="ob-step-3">
+      <div class="onboard-icon-large" style="background:rgba(232,0,45,0.1);">🚦</div>
+      <div class="onboard-title">It's <span style="color:#E8002D">Lights Out</span></div>
+      <div class="onboard-desc">Every race weekend comes alive in the app. Get reminders, join live discussion spaces and react to every session as it happens.</div>
+    </div>
+
+    <button class="btn-primary" id="onboard-next-btn" onclick="nextOnboardStep()">CONTINUE</button>
+  </div>
+</div>
+
+<!-- ==================== MAIN APP ==================== -->
+<div id="screen-app" class="screen">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-hex"><span>G2G</span></div>
+      <div class="sidebar-logo-text">
+        GRID TO GLORY
+        <small>F1 NATION</small>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <div class="nav-item active" onclick="navigateTo('the-grid',this)">
+        <div class="nav-icon">🏁</div>
+        <span>The Grid</span>
+      </div>
+      <div class="nav-item" onclick="navigateTo('team-garage',this)">
+        <div class="nav-icon">🔧</div>
+        <span>Team Garages</span>
+      </div>
+      <div class="nav-item" onclick="navigateTo('private-garages',this)">
+        <div class="nav-icon">🔒</div>
+        <span>Private Garages</span>
+        <span class="nav-badge">3</span>
+      </div>
+
+      <div class="nav-section-label">Communication</div>
+      <div class="nav-item" onclick="navigateTo('team-radio',this)">
+        <div class="nav-icon">📻</div>
+        <span>Team Radio</span>
+        <span class="nav-badge">2</span>
+      </div>
+
+      <div class="nav-section-label">Race Weekend</div>
+      <div class="nav-item" onclick="navigateTo('lights-out',this)">
+        <div class="nav-icon">🚦</div>
+        <span>Lights Out</span>
+        <span class="nav-live">LIVE</span>
+      </div>
+      <div class="nav-item" onclick="navigateTo('race-control',this)">
+        <div class="nav-icon">📡</div>
+        <span>Race Control</span>
+      </div>
+
+      <div class="nav-section-label">You</div>
+      <div class="nav-item" onclick="navigateTo('profile',this)">
+        <div class="nav-icon">👤</div>
+        <span>My Profile</span>
+      </div>
+    </div>
+    <div class="sidebar-profile">
+      <div class="profile-mini" onclick="navigateTo('profile',null)">
+        <div class="avatar" id="sidebar-avatar" style="background:rgba(206,244,9,0.15);color:var(--neon-purple-bright);">U</div>
+        <div class="profile-mini-info">
+          <div class="profile-mini-name" id="sidebar-username">username</div>
+          <div class="profile-mini-rank" id="sidebar-rank">⚡ ROOKIE</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- TELEMETRY BAR -->
+    <div class="telemetry-bar">
+      <div class="tele-item">🏎️ <span>NEXT RACE:</span> <span class="tele-value" id="tele-race">British GP · Silverstone</span></div>
+      <div class="tele-item">⏱️ <span>T-MINUS</span> <span class="tele-value" id="tele-countdown">08D 14H 22M</span></div>
+      <div class="tele-item">📡 <span>LIVE SESSION:</span> <span class="tele-value">NONE</span></div>
+      <div class="tele-item">👥 <span>FANS ONLINE:</span> <span class="tele-value">4,291</span></div>
+      <div class="tele-item">🔥 <span>TRENDING:</span> <span class="tele-value">#BritishGP #LandoOnPole</span></div>
+    </div>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="hamburger-btn" onclick="toggleSidebar()" aria-label="Open menu">☰</div>
+      <div class="topbar-title" id="topbar-title">THE <span>GRID</span></div>
+      <div class="topbar-right">
+        <div class="icon-btn" title="Search">🔍</div>
+        <div class="icon-btn" title="Notifications" onclick="showToast('🔔','New Notification','Lap_King joined your Private Garage!')">
+          🔔
+          <div class="notif-dot"></div>
+        </div>
+        <div class="icon-btn" title="Log out" onclick="handleLogout()" style="font-size:0.8rem;color:var(--text-muted);">⏻</div>
+      </div>
+    </div>
+
+    <!-- ===== THE GRID ===== -->
+    <div id="section-the-grid" class="page-section active">
+      <div class="page-inner">
+        <div>
+          <!-- Composer -->
+          <div class="composer">
+            <div class="composer-row">
+              <div class="avatar" id="composer-avatar" style="background:rgba(206,244,9,0.15);color:var(--neon-purple-bright);">U</div>
+              <textarea class="composer-input" id="composer-text" placeholder="Post to The Grid... Race reactions, memes, predictions, edits 🏎️"></textarea>
+            </div>
+            <div class="composer-actions">
+              <button class="composer-btn">📷 Photo</button>
+              <button class="composer-btn">🎬 Clip</button>
+              <button class="composer-btn">📊 Poll</button>
+              <button class="post-btn" onclick="submitPost()">POST TO GRID</button>
+            </div>
+          </div>
+
+          <!-- Feed -->
+          <div id="feed-container">
+            <!-- Posts injected by JS -->
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+          <!-- Countdown -->
+          <div class="countdown-widget">
+            <div class="countdown-label">⚡ NEXT RACE WEEKEND</div>
+            <div class="countdown-race">🇬🇧 British Grand Prix</div>
+            <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:0.75rem;">Silverstone Circuit · Round 12</div>
+            <div class="countdown-timer">
+              <div class="timer-unit">
+                <span class="timer-num" id="cd-days">08</span>
+                <div class="timer-label">DAYS</div>
+              </div>
+              <div class="timer-unit">
+                <span class="timer-num" id="cd-hours">14</span>
+                <div class="timer-label">HRS</div>
+              </div>
+              <div class="timer-unit">
+                <span class="timer-num" id="cd-mins">22</span>
+                <div class="timer-label">MINS</div>
+              </div>
+              <div class="timer-unit">
+                <span class="timer-num" id="cd-secs">09</span>
+                <div class="timer-label">SECS</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fastest Lap Trending -->
+          <div class="widget">
+            <div class="widget-header">⚡ FASTEST LAP — TRENDING</div>
+            <div class="widget-body">
+              <div class="trending-item">
+                <div class="trending-tag">#BritishGP</div>
+                <div class="trending-count">14.2K posts · Trending</div>
+              </div>
+              <div class="trending-item">
+                <div class="trending-tag">#LandoOnPole</div>
+                <div class="trending-count">9.8K posts</div>
+              </div>
+              <div class="trending-item">
+                <div class="trending-tag">#SilverstoneSector3</div>
+                <div class="trending-count">5.1K posts</div>
+              </div>
+              <div class="trending-item">
+                <div class="trending-tag">#FerrariStrategy</div>
+                <div class="trending-count">4.3K posts</div>
+              </div>
+              <div class="trending-item">
+                <div class="trending-tag">#TeamRadioMoments</div>
+                <div class="trending-count">2.9K posts</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Who's online -->
+          <div class="widget">
+            <div class="widget-header">👥 FANS ONLINE NOW</div>
+            <div class="widget-body">
+              <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                  <div class="avatar" style="width:28px;height:28px;font-size:0.65rem;background:rgba(232,0,45,0.15);color:#E8002D;border:1.5px solid #E8002D;">SF</div>
+                  <span style="font-size:0.85rem;">ScuderiaStan</span>
+                  <span class="team-tag" style="background:rgba(232,0,45,0.1);color:#E8002D;margin-left:auto;">Ferrari</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                  <div class="avatar" style="width:28px;height:28px;font-size:0.65rem;background:rgba(0,210,190,0.15);color:#00D2BE;border:1.5px solid #00D2BE;">MW</div>
+                  <span style="font-size:0.85rem;">MercedesWave</span>
+                  <span class="team-tag" style="background:rgba(0,210,190,0.1);color:#00D2BE;margin-left:auto;">Mercedes</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                  <div class="avatar" style="width:28px;height:28px;font-size:0.65rem;background:rgba(255,128,0,0.15);color:#FF8000;border:1.5px solid #FF8000;">LP</div>
+                  <span style="font-size:0.85rem;">LandosPapaya</span>
+                  <span class="team-tag" style="background:rgba(255,128,0,0.1);color:#FF8000;margin-left:auto;">McLaren</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                  <div class="avatar" style="width:28px;height:28px;font-size:0.65rem;background:rgba(54,113,198,0.15);color:#3671C6;border:1.5px solid #3671C6;">RB</div>
+                  <span style="font-size:0.85rem;">RedBullRookie</span>
+                  <span class="team-tag" style="background:rgba(54,113,198,0.1);color:#3671C6;margin-left:auto;">Red Bull</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TEAM GARAGE ===== -->
+    <div id="section-team-garage" class="page-section">
+      <div style="padding:1.5rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+          <div>
+            <div style="font-family:'Orbitron',monospace;font-size:0.65rem;color:var(--text-muted);letter-spacing:0.12em;margin-bottom:0.25rem;">TEAM GARAGES</div>
+            <div style="font-size:1rem;color:var(--text-secondary);">Connect with fans of every team on the grid</div>
+          </div>
+        </div>
+        <div class="garage-grid" id="garage-grid"></div>
+      </div>
+    </div>
+
+    <!-- ===== PRIVATE GARAGES ===== -->
+    <div id="section-private-garages" class="page-section">
+      <div class="page-inner full" style="padding:1.5rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+          <div>
+            <div style="font-family:'Orbitron',monospace;font-size:0.65rem;color:var(--text-muted);letter-spacing:0.12em;margin-bottom:0.25rem;">PRIVATE GARAGES</div>
+            <div style="font-size:0.95rem;color:var(--text-secondary);">Your personal racing team headquarters</div>
+          </div>
+          <button class="btn-secondary" onclick="openCreateGarage()">+ CREATE GARAGE</button>
+        </div>
+
+        <div id="private-garage-list">
+          <div class="private-garage-item">
+            <div class="garage-icon">🏎️</div>
+            <div class="garage-item-info">
+              <div class="garage-item-name">Apex Gang</div>
+              <div class="garage-item-meta">5 members · 12 unread messages · British GP watch party planned</div>
+            </div>
+            <div style="font-size:0.75rem;color:var(--neon-purple-bright);font-weight:700;">OWNER</div>
+          </div>
+          <div class="private-garage-item">
+            <div class="garage-icon">🏆</div>
+            <div class="garage-item-info">
+              <div class="garage-item-name">Quali Kings</div>
+              <div class="garage-item-meta">8 members · Watch every qualifying session together</div>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">MEMBER</div>
+          </div>
+          <div class="private-garage-item">
+            <div class="garage-icon">⚡</div>
+            <div class="garage-item-info">
+              <div class="garage-item-name">Strategy Nerds</div>
+              <div class="garage-item-meta">3 members · Deep dive into every race strategy call</div>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">MEMBER</div>
+          </div>
+        </div>
+
+        <div style="margin-top:2rem;padding:2rem;background:var(--bg-card);border:1px dashed var(--border);border-radius:12px;text-align:center;">
+          <div style="font-size:2rem;margin-bottom:0.75rem;">🏗️</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.8rem;font-weight:700;margin-bottom:0.4rem;">Create Your Headquarters</div>
+          <div style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:1.25rem;">Build a private space for your racing crew. Invite friends, organize watch parties, discuss every session.</div>
+          <button class="btn-primary" style="width:auto;padding:0.65rem 1.75rem;" onclick="openCreateGarage()">BUILD YOUR GARAGE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TEAM RADIO ===== -->
+    <div id="section-team-radio" class="page-section">
+      <div class="dm-layout">
+        <div class="dm-list">
+          <div class="dm-list-header">
+            <span>Team Radio</span>
+            <div class="icon-btn" style="width:28px;height:28px;font-size:0.9rem;" onclick="showToast('📻','Team Radio','New conversation started!')">✏️</div>
+          </div>
+          <div class="dm-item active" onclick="selectDM(this,'ScuderiaStan','SF','rgba(232,0,45,0.15)','#E8002D')">
+            <div class="avatar" style="width:36px;height:36px;font-size:0.8rem;background:rgba(232,0,45,0.15);color:#E8002D;border-color:#E8002D;">SF</div>
+            <div class="dm-info">
+              <div class="dm-name">ScuderiaStan</div>
+              <div class="dm-preview">That Leclerc lap was 🔥</div>
+            </div>
+            <div class="dm-time">2m</div>
+          </div>
+          <div class="dm-item" onclick="selectDM(this,'LandosPapaya','LP','rgba(255,128,0,0.15)','#FF8000')">
+            <div class="avatar" style="width:36px;height:36px;font-size:0.8rem;background:rgba(255,128,0,0.15);color:#FF8000;border-color:#FF8000;">LP</div>
+            <div class="dm-info">
+              <div class="dm-name">LandosPapaya</div>
+              <div class="dm-preview">🎙️ Voice note · 0:23</div>
+            </div>
+            <div class="dm-time">18m</div>
+          </div>
+          <div class="dm-item" onclick="selectDM(this,'MercedesWave','MW','rgba(0,210,190,0.15)','#00D2BE')">
+            <div class="avatar" style="width:36px;height:36px;font-size:0.8rem;background:rgba(0,210,190,0.15);color:#00D2BE;border-color:#00D2BE;">MW</div>
+            <div class="dm-info">
+              <div class="dm-name">MercedesWave</div>
+              <div class="dm-preview">Are you watching quali tomorrow?</div>
+            </div>
+            <div class="dm-time">1h</div>
+          </div>
+          <div class="dm-item" onclick="selectDM(this,'RedBullRookie','RB','rgba(54,113,198,0.15)','#3671C6')">
+            <div class="avatar" style="width:36px;height:36px;font-size:0.8rem;background:rgba(54,113,198,0.15);color:#3671C6;border-color:#3671C6;">RB</div>
+            <div class="dm-info">
+              <div class="dm-name">RedBullRookie</div>
+              <div class="dm-preview">Max is just built different lol</div>
+            </div>
+            <div class="dm-time">3h</div>
+          </div>
+        </div>
+
+        <div class="dm-chat">
+          <div class="dm-chat-header">
+            <div class="avatar" id="dm-header-avatar" style="width:36px;height:36px;font-size:0.8rem;background:rgba(232,0,45,0.15);color:#E8002D;border-color:#E8002D;">SF</div>
+            <div>
+              <div id="dm-header-name" style="font-weight:700;">ScuderiaStan</div>
+              <div style="font-size:0.75rem;color:var(--neon-yellow);">● Online</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:0.5rem;">
+              <div class="icon-btn" style="width:30px;height:30px;font-size:0.85rem;">📞</div>
+              <div class="icon-btn" style="width:30px;height:30px;font-size:0.85rem;">🎬</div>
+            </div>
+          </div>
+
+          <div class="dm-messages" id="dm-messages">
+            <div class="message theirs">
+              <div class="message-bubble">Bro did you see that Leclerc sector 3? Absolutely mental 🔥</div>
+              <div class="message-time">2:14 PM</div>
+            </div>
+            <div class="message mine">
+              <div class="message-bubble">I was literally screaming 😂 best lap of the season so far</div>
+              <div class="message-time">2:15 PM</div>
+            </div>
+            <div class="message theirs">
+              <div class="voice-note" onclick="playVoiceNote(this)">
+                <div class="voice-btn">▶</div>
+                <div class="voice-wave" id="voice1">
+                  <div class="wave-bar" style="--h:8px;animation-delay:0s"></div>
+                  <div class="wave-bar" style="--h:16px;animation-delay:0.1s"></div>
+                  <div class="wave-bar" style="--h:12px;animation-delay:0.2s"></div>
+                  <div class="wave-bar" style="--h:20px;animation-delay:0.3s"></div>
+                  <div class="wave-bar" style="--h:10px;animation-delay:0.4s"></div>
+                  <div class="wave-bar" style="--h:18px;animation-delay:0.5s"></div>
+                  <div class="wave-bar" style="--h:14px;animation-delay:0.6s"></div>
+                  <div class="wave-bar" style="--h:22px;animation-delay:0.7s"></div>
+                  <div class="wave-bar" style="--h:8px;animation-delay:0.8s"></div>
+                  <div class="wave-bar" style="--h:16px;animation-delay:0.9s"></div>
+                </div>
+                <span style="font-size:0.75rem;color:var(--text-muted);">0:23</span>
+              </div>
+              <div class="message-time">2:16 PM</div>
+            </div>
+            <div class="message mine">
+              <div class="message-bubble">Can't wait for quali tomorrow. That sector 3 time is untouchable 💜</div>
+              <div class="message-time">2:18 PM</div>
+            </div>
+          </div>
+
+          <div class="dm-input-area">
+            <div class="icon-btn" style="width:36px;height:36px;font-size:1rem;" onclick="sendVoiceNote()">🎙️</div>
+            <input class="dm-input" id="dm-text-input" placeholder="Send a transmission..." onkeydown="if(event.key==='Enter')sendDM()">
+            <button class="send-btn" onclick="sendDM()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== LIGHTS OUT ===== -->
+    <div id="section-lights-out" class="page-section">
+      <div class="page-inner wide">
+        <div>
+          <!-- Lights display -->
+          <div class="lights-out-hero carbon">
+            <div class="countdown-label" style="font-size:0.8rem;">🚦 RACE WEEKEND STATUS</div>
+            <div style="font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:900;margin-bottom:0.5rem;">🇬🇧 British Grand Prix</div>
+            <div style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:1.5rem;">Silverstone · Round 12 of 24</div>
+            <div class="lights-row" id="race-lights">
+              <div class="race-light"></div>
+              <div class="race-light"></div>
+              <div class="race-light"></div>
+              <div class="race-light"></div>
+              <div class="race-light"></div>
+            </div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);">Lights go out in <span style="color:var(--neon-yellow);font-weight:700;">8 days 14 hours</span></div>
+          </div>
+
+          <!-- Sessions -->
+          <div style="font-family:'Orbitron',monospace;font-size:0.7rem;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:0.75rem;">WEEKEND SESSIONS</div>
+          <div class="session-list">
+            <div class="session-item">
+              <div class="session-type" style="color:var(--text-muted);">FP1</div>
+              <div class="session-info">
+                <div class="session-name">Free Practice 1</div>
+                <div class="session-time">Friday 5 July · 12:30 GMT</div>
+              </div>
+              <div class="session-status status-done">DONE</div>
+            </div>
+            <div class="session-item">
+              <div class="session-type" style="color:var(--text-muted);">FP2</div>
+              <div class="session-info">
+                <div class="session-name">Free Practice 2</div>
+                <div class="session-time">Friday 5 July · 16:00 GMT</div>
+              </div>
+              <div class="session-status status-done">DONE</div>
+            </div>
+            <div class="session-item">
+              <div class="session-type" style="color:var(--text-muted);">FP3</div>
+              <div class="session-info">
+                <div class="session-name">Free Practice 3</div>
+                <div class="session-time">Saturday 6 July · 11:30 GMT</div>
+              </div>
+              <div class="session-status status-done">DONE</div>
+            </div>
+            <div class="session-item upcoming">
+              <div class="session-type" style="color:var(--neon-purple-bright);">QUALI</div>
+              <div class="session-info">
+                <div class="session-name">Qualifying</div>
+                <div class="session-time">Saturday 6 July · 15:00 GMT</div>
+              </div>
+              <div class="session-status status-upcoming">NEXT UP</div>
+            </div>
+            <div class="session-item">
+              <div class="session-type" style="color:var(--ferrari);">RACE</div>
+              <div class="session-info">
+                <div class="session-name">Race Day 🏁</div>
+                <div class="session-time">Sunday 7 July · 15:00 GMT</div>
+              </div>
+              <div class="session-status status-upcoming">8 DAYS</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+          <div class="widget" style="margin-bottom:1rem;">
+            <div class="widget-header">🔥 LIVE DISCUSSION ROOMS</div>
+            <div class="widget-body">
+              <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                <div style="padding:0.75rem;background:var(--bg-elevated);border-radius:8px;cursor:pointer;border:1px solid var(--border);" onclick="showToast('🏎️','Lights Out','Joined Qualifying Discussion room!')">
+                  <div style="font-weight:700;font-size:0.9rem;margin-bottom:2px;">Qualifying Discussion</div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);">892 fans watching · opens in 8 days</div>
+                </div>
+                <div style="padding:0.75rem;background:var(--bg-elevated);border-radius:8px;cursor:pointer;border:1px solid var(--border);" onclick="showToast('🏎️','Lights Out','Joined Race Day Live room!')">
+                  <div style="font-weight:700;font-size:0.9rem;margin-bottom:2px;">Race Day Live 🏁</div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);">2.1K fans ready · opens in 8 days</div>
+                </div>
+                <div style="padding:0.75rem;background:rgba(206,244,9,0.04);border-radius:8px;cursor:pointer;border:1px solid var(--border-accent);" onclick="showToast('🏎️','Private Garage','Joined Apex Gang race room!')">
+                  <div style="font-weight:700;font-size:0.9rem;margin-bottom:2px;">Apex Gang — Race Room</div>
+                  <div style="font-size:0.75rem;color:var(--neon-yellow);">Your Private Garage · 5 members</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="widget">
+            <div class="widget-header">🗓️ UPCOMING RACES</div>
+            <div class="widget-body">
+              <div style="display:flex;flex-direction:column;gap:0.6rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <div style="font-weight:600;font-size:0.85rem;">🇬🇧 British GP</div>
+                    <div style="font-size:0.72rem;color:var(--text-muted);">7 July</div>
+                  </div>
+                  <div style="font-size:0.7rem;background:rgba(206,244,9,0.1);color:var(--neon-purple-bright);padding:2px 8px;border-radius:4px;font-weight:700;">RD 12</div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <div style="font-weight:600;font-size:0.85rem;">🇭🇺 Hungarian GP</div>
+                    <div style="font-size:0.72rem;color:var(--text-muted);">21 July</div>
+                  </div>
+                  <div style="font-size:0.7rem;background:var(--bg-elevated);color:var(--text-muted);padding:2px 8px;border-radius:4px;font-weight:700;">RD 13</div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <div style="font-weight:600;font-size:0.85rem;">🇧🇪 Belgian GP</div>
+                    <div style="font-size:0.72rem;color:var(--text-muted);">28 July</div>
+                  </div>
+                  <div style="font-size:0.7rem;background:var(--bg-elevated);color:var(--text-muted);padding:2px 8px;border-radius:4px;font-weight:700;">RD 14</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== RACE CONTROL ===== -->
+    <div id="section-race-control" class="page-section">
+      <div class="rc-grid">
+        <div class="rc-card">
+          <div class="rc-card-icon">📅</div>
+          <div class="rc-card-title">RACE CALENDAR 2025</div>
+          <div class="rc-card-desc">Full season calendar, round-by-round schedule, sprint events and all session times.</div>
+        </div>
+        <div class="rc-card" style="border-color:rgba(155,92,246,0.3);">
+          <div class="rc-card-icon">⏰</div>
+          <div class="rc-card-title">SESSION REMINDERS</div>
+          <div class="rc-card-desc">You have <span style="color:var(--neon-yellow);font-weight:700;">3 reminders set</span>. Qualifying, Race Day, Sprint — Silverstone.</div>
+        </div>
+        <div class="rc-card">
+          <div class="rc-card-icon">📺</div>
+          <div class="rc-card-title">G2G YOUTUBE CHANNEL</div>
+          <div class="rc-card-desc">Latest uploads: Race Reactions, Onboard Compilations, Strategy Breakdowns.</div>
+        </div>
+        <div class="rc-card">
+          <div class="rc-card-icon">📢</div>
+          <div class="rc-card-title">APP ANNOUNCEMENTS</div>
+          <div class="rc-card-desc">2 new announcements: Lights Out 2.0 update, Private Garage voice chat beta.</div>
+        </div>
+        <div class="rc-card">
+          <div class="rc-card-icon">🏆</div>
+          <div class="rc-card-title">STANDINGS 2025</div>
+          <div class="rc-card-desc">Current Driver & Constructor Championship standings. Live updated after each race.</div>
+        </div>
+        <div class="rc-card">
+          <div class="rc-card-icon">🔔</div>
+          <div class="rc-card-title">NOTIFICATIONS</div>
+          <div class="rc-card-desc">Manage all notifications: Lights Out alerts, Team Garage activity, Team Radio messages.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PROFILE ===== -->
+    <div id="section-profile" class="page-section">
+      <div style="padding:1.5rem;max-width:800px;margin:0 auto;">
+        <div class="profile-hero">
+          <div class="profile-banner" id="profile-banner" style="background:linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);">
+            <button class="btn-secondary" style="font-size:0.6rem;padding:0.4rem 0.85rem;" onclick="openTeamChange()">CHANGE TEAM</button>
+          </div>
+          <div class="profile-info-row">
+            <div class="profile-avatar-large" id="profile-avatar-lg" style="background:rgba(206,244,9,0.15);color:var(--neon-purple-bright);">U</div>
+            <div style="flex:1;">
+              <div class="profile-display-name" id="profile-display-name">username</div>
+              <div class="profile-username" id="profile-username-sub">@username</div>
+              <div class="rank-badge" id="profile-rank-badge">⚡ ROOKIE</div>
+              <div class="stats-row">
+                <div class="stat-item">
+                  <div class="stat-num" id="profile-posts">0</div>
+                  <div class="stat-label">Posts</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-num">47</div>
+                  <div class="stat-label">Followers</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-num">23</div>
+                  <div class="stat-label">Following</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile details -->
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-header">
+            <span class="card-title">🏎️ RACING IDENTITY</span>
+          </div>
+          <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div>
+              <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.3rem;">Favourite Team</div>
+              <div id="profile-team-display" style="font-weight:700;font-size:1rem;display:flex;align-items:center;gap:0.5rem;">
+                <div style="width:12px;height:12px;border-radius:50%;background:var(--neon-yellow);"></div>
+                —
+              </div>
+            </div>
+            <div>
+              <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.3rem;">Favourite Driver</div>
+              <div id="profile-driver-display" style="font-weight:700;font-size:1rem;">—</div>
+            </div>
+            <div>
+              <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.3rem;">Rank</div>
+              <div style="font-weight:700;font-size:1rem;">
+                <span class="rank-badge" id="profile-rank-detail">⚡ ROOKIE</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.3rem;">Member Since</div>
+              <div style="font-weight:700;font-size:1rem;" id="profile-joined">Today</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📊 RANK PROGRESSION</span>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;gap:0;margin-bottom:1rem;">
+              <div style="flex:1;text-align:center;padding:0.5rem;">
+                <div style="font-size:1.2rem;">🟢</div>
+                <div style="font-size:0.7rem;color:var(--neon-purple-bright);font-weight:700;margin-top:2px;">ROOKIE</div>
+              </div>
+              <div style="flex:1;text-align:center;padding:0.5rem;">
+                <div style="font-size:1.2rem;">🔵</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);font-weight:700;margin-top:2px;">QUALIFIER</div>
+              </div>
+              <div style="flex:1;text-align:center;padding:0.5rem;">
+                <div style="font-size:1.2rem;">🏅</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);font-weight:700;margin-top:2px;">PODIUM</div>
+              </div>
+              <div style="flex:1;text-align:center;padding:0.5rem;">
+                <div style="font-size:1.2rem;">🏆</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);font-weight:700;margin-top:2px;">CHAMPION</div>
+              </div>
+              <div style="flex:1;text-align:center;padding:0.5rem;">
+                <div style="font-size:1.2rem;">👑</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);font-weight:700;margin-top:2px;">WORLD CHAMP</div>
+              </div>
+            </div>
+            <div style="background:var(--bg-elevated);border-radius:4px;height:6px;overflow:hidden;">
+              <div style="background:var(--neon-yellow);height:100%;width:10%;border-radius:4px;box-shadow:0 0 8px rgba(155,92,246,0.6);"></div>
+            </div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.5rem;">Post more, react more and participate in Lights Out sessions to climb the ranks 🏎️</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+
+  <!-- SIDEBAR OVERLAY (mobile tap-to-close) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- BOTTOM NAV (mobile) -->
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+    <div class="bottom-nav-inner">
+      <button class="bottom-nav-item active" id="bn-the-grid" onclick="navigateTo('the-grid', null)">
+        <span class="bn-icon">🏁</span>The Grid
+      </button>
+      <button class="bottom-nav-item" id="bn-team-garage" onclick="navigateTo('team-garage', null)">
+        <span class="bn-icon">🔧</span>Garages
+      </button>
+      <button class="bottom-nav-item" id="bn-lights-out" onclick="navigateTo('lights-out', null)">
+        <span class="bn-icon">🚦</span>Live
+        <span class="bn-live-dot"></span>
+      </button>
+      <button class="bottom-nav-item" id="bn-team-radio" onclick="navigateTo('team-radio', null)">
+        <span class="bn-icon">📻</span>Radio
+        <span class="bn-badge">2</span>
+      </button>
+      <button class="bottom-nav-item" id="bn-profile" onclick="navigateTo('profile', null)">
+        <span class="bn-icon">👤</span>Profile
+      </button>
+    </div>
+  </nav>
+
+</div><!-- /screen-app -->
+
+<!-- ==================== MODALS ==================== -->
+<!-- Create Private Garage -->
+<div class="modal-overlay" id="modal-create-garage">
+  <div class="modal">
+    <div class="modal-title">🏗️ CREATE PRIVATE GARAGE</div>
+    <button class="modal-close" onclick="closeModal('modal-create-garage')">✕</button>
+    <div class="form-group">
+      <label class="form-label">Garage Name</label>
+      <input type="text" class="form-input" id="new-garage-name" placeholder="e.g. Apex Crew, Quali Kings...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Choose an Icon</label>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.4rem;" id="icon-selector">
+        <div style="padding:0.5rem;background:var(--bg-elevated);border-radius:8px;cursor:pointer;border:1px solid var(--border);font-size:1.2rem;" onclick="selectIcon(this,'🏎️')">🏎️</div>
+        <div style="padding:0.5rem;background:var(--bg-elevated);border-radius:8px;cursor:pointer;border:1px solid var(--border);font-size:1.2rem;" onclick="selectIcon(this,'🏆')">🏆</div>
+        <div style="padding:0.5rem;background:var(--bg-elevated);border-radius:8px;cursor:pointer;border:1px solid var(--border);font-size:1.2rem;" onclick="selectIcon(this,'⚡')">⚡</div>
+        <div style="padding:0.5rem;background:var(--bg-elevated);border-radius:8px;cursor:pointer;border:1px solid var(--border);font-size:1.2rem;" onclick="selectIcon(this,'🔥')">🔥</div>
+        <div style="padding:0.5rem;background:var(--bg-elevated);border-radius:8px;cursor:pointer;border:1px solid var(--border);font-size:1.2rem;" onclick="selectIcon(this,'🎯')">🎯</div>
+        <div style="padding:0.5rem;background:var(--bg-elevated);border-radius:8px;cursor:pointer;border:1px solid var(--border);font-size:1.2rem;" onclick="selectIcon(this,'🏁')">🏁</div>
+        <div style="padding:0.5rem;background:var(--bg-elevated);border-radius:8px;cursor:pointer;border:1px solid var(--border);font-size:1.2rem;" onclick="selectIcon(this,'🚀')">🚀</div>
+        <div style="padding:0.5rem;background:var(--bg-elevated);border-radius:8px;cursor:pointer;border:1px solid var(--border);font-size:1.2rem;" onclick="selectIcon(this,'💜')">💜</div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="createGarage()">BUILD GARAGE</button>
+  </div>
+</div>
+
+<!-- Change Team Modal -->
+<div class="modal-overlay" id="modal-change-team">
+  <div class="modal">
+    <div class="modal-title">🔧 CHANGE YOUR TEAM</div>
+    <button class="modal-close" onclick="closeModal('modal-change-team')">✕</button>
+    <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Switching teams will move you to a new Team Garage.</div>
+    <div class="team-select-grid" id="change-team-grid">
+      <div class="team-card" onclick="changeTeam('Ferrari','#E8002D',this)">
+        <div class="team-dot" style="background:#E8002D;"></div>
+        <div class="team-card-name">Ferrari</div>
+      </div>
+      <div class="team-card" onclick="changeTeam('McLaren','#FF8000',this)">
+        <div class="team-dot" style="background:#FF8000;"></div>
+        <div class="team-card-name">McLaren</div>
+      </div>
+      <div class="team-card" onclick="changeTeam('Mercedes','#00D2BE',this)">
+        <div class="team-dot" style="background:#00D2BE;"></div>
+        <div class="team-card-name">Mercedes</div>
+      </div>
+      <div class="team-card" onclick="changeTeam('Red Bull','#3671C6',this)">
+        <div class="team-dot" style="background:#3671C6;"></div>
+        <div class="team-card-name">Red Bull</div>
+      </div>
+      <div class="team-card" onclick="changeTeam('Aston Martin','#358C75',this)">
+        <div class="team-dot" style="background:#358C75;"></div>
+        <div class="team-card-name">Aston Martin</div>
+      </div>
+      <div class="team-card" onclick="changeTeam('Williams','#64C4FF',this)">
+        <div class="team-dot" style="background:#64C4FF;"></div>
+        <div class="team-card-name">Williams</div>
+      </div>
+      <div class="team-card" onclick="changeTeam('Alpine','#0093CC',this)">
+        <div class="team-dot" style="background:#0093CC;"></div>
+        <div class="team-card-name">Alpine</div>
+      </div>
+      <div class="team-card" onclick="changeTeam('Haas','#B6BABD',this)">
+        <div class="team-dot" style="background:#B6BABD;"></div>
+        <div class="team-card-name">Haas</div>
+      </div>
+      <div class="team-card" onclick="changeTeam('Racing Bulls','#6692FF',this)">
+        <div class="team-dot" style="background:#6692FF;"></div>
+        <div class="team-card-name">Racing Bulls</div>
+      </div>
+      <div class="team-card" onclick="changeTeam('Audi','#BB0000',this)">
+        <div class="team-dot" style="background:#BB0000;"></div>
+        <div class="team-card-name">Audi</div>
+      </div>
+      <div class="team-card" onclick="changeTeam('Cadillac','#1B1BFF',this)">
+        <div class="team-dot" style="background:#1B1BFF;"></div>
+        <div class="team-card-name">Cadillac</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toast-icon">🔔</div>
+  <div class="toast-content">
+    <div class="toast-title" id="toast-title">Notification</div>
+    <div class="toast-desc" id="toast-desc">Message here</div>
+  </div>
+</div>
+
+<script>
+// ===========================
+// STATE
+// ===========================
+const users = []; // {email, password, username, team, teamColor, driver}
+let currentUser = null;
+let selectedTeam = null;
+let selectedTeamColor = null;
+let selectedIcon = '🏎️';
+let onboardStep = 0;
+let postCount = 0;
+let teamPosts = 0; // track posts per section
+
+const TEAM_COLORS = {
+  'Ferrari':'#E8002D','McLaren':'#FF8000','Mercedes':'#00D2BE',
+  'Red Bull':'#3671C6','Aston Martin':'#358C75','Williams':'#64C4FF',
+  'Alpine':'#0093CC','Haas':'#B6BABD','Racing Bulls':'#6692FF','Audi':'#BB0000','Cadillac':'#1B1BFF'
+};
+
+const TEAM_BG = {
+  'Ferrari':'radial-gradient(135deg,#500010 0%,#200008 100%)',
+  'McLaren':'radial-gradient(135deg,#5A2D00 0%,#200F00 100%)',
+  'Mercedes':'radial-gradient(135deg,#00352F 0%,#001512 100%)',
+  'Red Bull':'radial-gradient(135deg,#0D2050 0%,#050C20 100%)',
+  'Aston Martin':'radial-gradient(135deg,#0F2A22 0%,#060F0C 100%)',
+  'Williams':'radial-gradient(135deg,#0D2535 0%,#050E16 100%)',
+  'Alpine':'radial-gradient(135deg,#00243A 0%,#000E17 100%)',
+  'Haas':'radial-gradient(135deg,#252628 0%,#0D0D0E 100%)',
+  'Racing Bulls':'radial-gradient(135deg,#0F1835 0%,#050810 100%)',
+  'Audi':'radial-gradient(135deg,#380000 0%,#150000 100%)',
+  'Cadillac':'radial-gradient(135deg,#06063A 0%,#020210 100%)'
+};
+
+const SAMPLE_POSTS = [
+  {user:'ScuderiaStan',team:'Ferrari',color:'#E8002D',initials:'SF',time:'3 mins ago',content:'That Leclerc sector 3 at Silverstone was genuinely other-worldly. Nobody is touching that on race day if he drives like that 🔴🐎 #BritishGP',likes:342,comments:67,reposts:28,liked:false},
+  {user:'LandosPapaya',team:'McLaren',color:'#FF8000',initials:'LP',time:'11 mins ago',content:'McLaren looking seriously quick in FP2. The long run pace is THERE. Could be our race to lose honestly 🧡 #LandoOnPole',likes:891,comments:134,reposts:72,liked:false,hasImage:true},
+  {user:'MercedesWave',team:'Mercedes',color:'#00D2BE',initials:'MW',time:'24 mins ago',content:'People sleeping on Russell\'s race pace. He consistently picks up 3-4 positions on strategy. If qualifying goes wrong they\'re still dangerous 🔵⭐',likes:215,comments:43,reposts:19,liked:false},
+  {user:'RedBullRookie',team:'Red Bull',color:'#3671C6',initials:'RB',time:'41 mins ago',content:'The RB20 just does not suit Silverstone layout this year. High speed corners not their strong suit. Massive respect to Perez for keeping it in the top 6 yesterday.',likes:178,comments:89,reposts:14,liked:false},
+  {user:'ApexAlonso',team:'Aston Martin',color:'#358C75',initials:'AA',time:'1 hour ago',content:'Fernando Alonso is 43 years old and still pulling out laps like that in sector 2. Genuinely the GOAT of F1. Nothing more to say. 💚🟢 #BritishGP',likes:562,comments:201,reposts:88,liked:false},
+  {user:'WilliamsWorld',team:'Williams',color:'#64C4FF',initials:'WW',time:'2 hours ago',content:'Albon P9 in FP1!! Williams looking genuinely competitive at Silverstone. The development path is REAL. Let\'s go blue 💙 #WilliamsRacing',likes:287,comments:55,reposts:39,liked:false},
+];
+
+// ===========================
+// AUTH
+// ===========================
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => {
+    t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='signup'&&i===1));
+  });
+  document.getElementById('form-login').classList.toggle('active', tab==='login');
+  document.getElementById('form-signup').classList.toggle('active', tab==='signup');
+}
+
+function selectTeam(name, color, el) {
+  selectedTeam = name; selectedTeamColor = color;
+  document.querySelectorAll('#team-grid .team-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  const user = users.find(u => u.email === email && u.password === pass);
+  if (!user) { err.classList.add('visible'); return; }
+  err.classList.remove('visible');
+  currentUser = user;
+  enterApp();
+}
+
+function handleSignup() {
+  const email = document.getElementById('signup-email').value.trim();
+  const username = document.getElementById('signup-username').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const driver = document.getElementById('signup-driver').value;
+  const err = document.getElementById('signup-error');
+
+  if (!email || !username || !password) { showError(err, 'Please fill in all fields.'); return; }
+  if (!selectedTeam) { showError(err, 'Please choose your favourite team.'); return; }
+  if (users.find(u => u.email === email)) { showError(err, 'An account with this email already exists.'); return; }
+  if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) { showError(err, 'Username already taken — choose another callsign.'); return; }
+  if (password.length < 6) { showError(err, 'Password must be at least 6 characters.'); return; }
+
+  const user = {email, username, password, team: selectedTeam, teamColor: selectedTeamColor, driver, joinedDate: new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'}), posts: 0};
+  users.push(user);
+  currentUser = user;
+  err.classList.remove('visible');
+  showOnboarding();
+}
+
+function showError(el, msg) { el.textContent = msg; el.classList.add('visible'); }
+
+// ===========================
+// ONBOARDING
+// ===========================
+function showOnboarding() {
+  showScreen('screen-onboard');
+  onboardStep = 0;
+  updateOnboard();
+}
+
+function nextOnboardStep() {
+  if (onboardStep < 3) {
+    onboardStep++;
+    updateOnboard();
+  } else {
+    enterApp();
+  }
+}
+
+function updateOnboard() {
+  document.querySelectorAll('.onboard-step').forEach((s,i) => {
+    s.classList.toggle('active', i === onboardStep);
+  });
+  document.querySelectorAll('.onboard-dot').forEach((d,i) => {
+    d.classList.toggle('active', i === onboardStep);
+  });
+  document.getElementById('onboard-next-btn').textContent = onboardStep < 3 ? 'CONTINUE' : 'ENTER THE GRID 🏁';
+}
+
+// ===========================
+// APP
+// ===========================
+function enterApp() {
+  showScreen('screen-app');
+  updateUserUI();
+  buildFeed();
+  buildGarages();
+  startCountdown();
+  animateLights();
+  setTimeout(() => showToast('🏁','Welcome to the Grid!',`Good to have you, ${currentUser.username}. Race season is live.`), 1000);
+  setTimeout(() => showToast('🔔','New Notification','LandosPapaya started following you!'), 4000);
+}
+
+function updateUserUI() {
+  const u = currentUser;
+  const init = u.username.substring(0,2).toUpperCase();
+  const color = u.teamColor || '#CEF409';
+  const teamColorRgb = hexToRgb(color);
+  const avatarBg = `rgba(${teamColorRgb},0.15)`;
+
+  // Sidebar
+  document.getElementById('sidebar-avatar').textContent = init;
+  document.getElementById('sidebar-avatar').style.cssText = `background:${avatarBg};color:${color};border-color:${color};`;
+  document.getElementById('sidebar-username').textContent = u.username;
+
+  // Composer
+  const compAvatar = document.getElementById('composer-avatar');
+  if (compAvatar) { compAvatar.textContent = init; compAvatar.style.cssText = `background:${avatarBg};color:${color};border-color:${color};width:36px;height:36px;font-size:0.85rem;border-radius:50%;border:2px solid;`; }
+
+  // Profile page
+  document.getElementById('profile-display-name').textContent = u.username;
+  document.getElementById('profile-username-sub').textContent = `@${u.username}`;
+  const profileAvLg = document.getElementById('profile-avatar-lg');
+  profileAvLg.textContent = init;
+  profileAvLg.style.cssText = `background:${avatarBg};color:${color};margin-top:-40px;flex-shrink:0;width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:2rem;border:4px solid var(--bg-card)`;
+  profileAvLg.style.border = `4px solid var(--bg-card)`;
+
+  // Profile banner uses team color
+  document.getElementById('profile-banner').style.background = TEAM_BG[u.team] || 'var(--bg-elevated)';
+
+  // Team + driver on profile
+  const teamDiv = document.getElementById('profile-team-display');
+  teamDiv.innerHTML = `<div style="width:12px;height:12px;border-radius:50%;background:${color};"></div> ${u.team || '—'}`;
+  document.getElementById('profile-driver-display').textContent = u.driver || '—';
+  document.getElementById('profile-joined').textContent = u.joinedDate;
+
+  document.getElementById('profile-posts').textContent = u.posts || 0;
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+// ===========================
+// FEED
+// ===========================
+function buildFeed() {
+  const container = document.getElementById('feed-container');
+  container.innerHTML = '';
+  SAMPLE_POSTS.forEach(p => container.appendChild(createPostEl(p)));
+}
+
+function createPostEl(p) {
+  const div = document.createElement('div');
+  div.className = 'post';
+  const imageHtml = p.hasImage ? `<div class="post-image"><div class="post-image-placeholder">🏎️</div></div>` : '';
+  div.innerHTML = `
+    <div class="post-header">
+      <div class="avatar" style="width:40px;height:40px;font-size:0.85rem;background:rgba(${hexToRgb(p.color)},0.15);color:${p.color};border:2px solid ${p.color};">${p.initials}</div>
+      <div class="post-meta">
+        <div class="post-username">${p.user} <span class="team-tag" style="background:rgba(${hexToRgb(p.color)},0.12);color:${p.color};">${p.team}</span></div>
+        <div class="post-time">${p.time}</div>
+      </div>
+      <div style="color:var(--text-muted);cursor:pointer;">···</div>
+    </div>
+    <div class="post-content">${p.content}</div>
+    ${imageHtml}
+    <div class="post-actions">
+      <button class="post-action" onclick="toggleLike(this,${JSON.stringify(p.likes)})">
+        <span>♥</span> <span class="like-count">${p.likes}</span>
+      </button>
+      <button class="post-action" onclick="">
+        <span>💬</span> <span>${p.comments}</span>
+      </button>
+      <button class="post-action">
+        <span>🔁</span> <span>${p.reposts}</span>
+      </button>
+      <button class="post-action" style="margin-left:auto;">
+        <span>🔖</span>
+      </button>
+    </div>
+  `;
+  return div;
+}
+
+function toggleLike(btn, baseLikes) {
+  btn.classList.toggle('liked');
+  const count = btn.querySelector('.like-count');
+  const liked = btn.classList.contains('liked');
+  count.textContent = liked ? baseLikes + 1 : baseLikes;
+}
+
+function submitPost() {
+  const text = document.getElementById('composer-text').value.trim();
+  if (!text) return;
+  const u = currentUser;
+  const color = u.teamColor || '#CEF409';
+  const p = {
+    user: u.username,
+    team: u.team || 'Grid',
+    color: color,
+    initials: u.username.substring(0,2).toUpperCase(),
+    time: 'just now',
+    content: text,
+    likes: 0,
+    comments: 0,
+    reposts: 0,
+    liked: false,
+  };
+  const container = document.getElementById('feed-container');
+  const el = createPostEl(p);
+  el.style.borderColor = 'rgba(155,92,246,0.3)';
+  el.style.animation = 'fadeIn 0.3s ease';
+  container.insertBefore(el, container.firstChild);
+  document.getElementById('composer-text').value = '';
+  currentUser.posts = (currentUser.posts || 0) + 1;
+  document.getElementById('profile-posts').textContent = currentUser.posts;
+  updateRank();
+  showToast('🏁','Posted to The Grid!','Your post is live. Go Racing!');
+}
+
+function updateRank() {
+  const posts = currentUser.posts;
+  let rank = '⚡ ROOKIE';
+  if (posts >= 50) rank = '👑 WORLD CHAMPION';
+  else if (posts >= 20) rank = '🏆 CHAMPION';
+  else if (posts >= 10) rank = '🏅 PODIUM';
+  else if (posts >= 5) rank = '🔵 QUALIFIER';
+  document.getElementById('sidebar-rank').textContent = rank;
+  document.getElementById('sidebar-rank').style.color = 'var(--neon-yellow)';
+  document.getElementById('profile-rank-badge').textContent = rank;
+  document.getElementById('profile-rank-detail').textContent = rank;
+}
+
+// ===========================
+// GARAGES
+// ===========================
+const TEAMS = [
+  {name:'Ferrari',color:'#E8002D',members:'12.4K',posts:'8.9K/day'},
+  {name:'McLaren',color:'#FF8000',members:'9.8K',posts:'7.1K/day'},
+  {name:'Mercedes',color:'#00D2BE',members:'11.2K',posts:'6.8K/day'},
+  {name:'Red Bull',color:'#3671C6',members:'15.1K',posts:'10.2K/day'},
+  {name:'Aston Martin',color:'#358C75',members:'4.2K',posts:'2.1K/day'},
+  {name:'Williams',color:'#64C4FF',members:'3.8K',posts:'1.9K/day'},
+  {name:'Alpine',color:'#0093CC',members:'3.1K',posts:'1.4K/day'},
+  {name:'Haas',color:'#B6BABD',members:'2.7K',posts:'1.1K/day'},
+  {name:'Racing Bulls',color:'#6692FF',members:'2.2K',posts:'0.9K/day'},
+  {name:'Sauber',color:'#00E701',members:'1.8K',posts:'0.7K/day'},
+];
+
+function buildGarages() {
+  const grid = document.getElementById('garage-grid');
+  grid.innerHTML = '';
+  TEAMS.forEach(t => {
+    const isUser = currentUser && currentUser.team === t.name;
+    const div = document.createElement('div');
+    div.className = 'garage-card' + (isUser ? ' user-team' : '');
+    div.onclick = () => { navigateTo('the-grid', document.querySelector('.nav-item')); showToast('🔧','Team Garage',`Entered ${t.name} Garage!`); };
+    div.innerHTML = `
+      <div class="garage-header" style="background:${TEAM_BG[t.name]||'var(--bg-elevated)'};">
+        <div class="garage-header-text" style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:${t.color};">${t.name.toUpperCase()}</div>
+      </div>
+      <div class="garage-body">
+        <div class="garage-name">
+          <div style="width:10px;height:10px;border-radius:50%;background:${t.color};"></div>
+          ${t.name} Garage
+          ${isUser ? '<span style="font-size:0.6rem;background:rgba(206,244,9,0.15);color:var(--neon-purple-bright);border-radius:4px;padding:2px 6px;font-weight:700;">YOUR TEAM</span>' : ''}
+        </div>
+        <div class="garage-stats">
+          <span>👥 ${t.members}</span>
+          <span>📝 ${t.posts}</span>
+        </div>
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+// ===========================
+// NAVIGATION
+// ===========================
+const SECTION_TITLES = {
+  'the-grid':'THE <span style="color:var(--neon-purple-bright)">GRID</span>',
+  'team-garage':'TEAM <span style="color:var(--neon-purple-bright)">GARAGES</span>',
+  'private-garages':'PRIVATE <span style="color:var(--neon-purple-bright)">GARAGES</span>',
+  'team-radio':'TEAM <span style="color:var(--neon-purple-bright)">RADIO</span>',
+  'lights-out':'LIGHTS <span style="color:#E8002D">OUT</span>',
+  'race-control':'RACE <span style="color:var(--neon-purple-bright)">CONTROL</span>',
+  'profile':'MY <span style="color:var(--neon-purple-bright)">PROFILE</span>',
+};
+
+function navigateTo(section, navEl) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('section-' + section);
+  if (el) el.classList.add('active');
+  document.getElementById('topbar-title').innerHTML = SECTION_TITLES[section] || section.toUpperCase();
+}
+
+// ===========================
+// TEAM RADIO (DMs)
+// ===========================
+function selectDM(el, name, initials, bg, color) {
+  document.querySelectorAll('.dm-item').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('dm-header-avatar').textContent = initials;
+  document.getElementById('dm-header-avatar').style.cssText = `width:36px;height:36px;font-size:0.8rem;background:${bg};color:${color};border:2px solid ${color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;`;
+  document.getElementById('dm-header-name').textContent = name;
+}
+
+function sendDM() {
+  const input = document.getElementById('dm-text-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const msgs = document.getElementById('dm-messages');
+  const div = document.createElement('div');
+  div.className = 'message mine';
+  div.innerHTML = `<div class="message-bubble">${text}</div><div class="message-time">${getTime()}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  input.value = '';
+  setTimeout(() => {
+    const reply = document.createElement('div');
+    reply.className = 'message theirs';
+    const replies = ['Absolutely! 🏎️','100% agree mate','Race weekend can\'t come soon enough 🏁','Let\'s set up a watch party!','That lap was mental 🔥'];
+    reply.innerHTML = `<div class="message-bubble">${replies[Math.floor(Math.random()*replies.length)]}</div><div class="message-time">${getTime()}</div>`;
+    msgs.appendChild(reply);
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 1200);
+}
+
+function sendVoiceNote() {
+  showToast('🎙️','Team Radio','Voice note sent!');
+}
+
+function playVoiceNote(el) {
+  const btn = el.querySelector('.voice-btn');
+  btn.textContent = btn.textContent === '▶' ? '⏸' : '▶';
+}
+
+function getTime() {
+  return new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ===========================
+// LIGHTS OUT ANIMATION
+// ===========================
+function animateLights() {
+  const lights = document.querySelectorAll('.race-light');
+  if (!lights.length) return;
+  let i = 0;
+  const on = setInterval(() => {
+    if (i < lights.length) { lights[i].classList.add('on'); i++; }
+    else {
+      clearInterval(on);
+      setTimeout(() => {
+        lights.forEach(l => l.classList.remove('on'));
+        setTimeout(animateLights, 4000);
+      }, 2000);
+    }
+  }, 600);
+}
+
+// ===========================
+// COUNTDOWN
+// ===========================
+function startCountdown() {
+  // Target: 8 days 14 hours from now (simulated)
+  const target = new Date();
+  target.setDate(target.getDate() + 8);
+  target.setHours(target.getHours() + 14);
+  target.setMinutes(target.getMinutes() + 22);
+
+  function update() {
+    const now = new Date();
+    const diff = target - now;
+    if (diff <= 0) return;
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    const pad = n => String(n).padStart(2,'0');
+    const cdDays = document.getElementById('cd-days');
+    const cdHours = document.getElementById('cd-hours');
+    const cdMins = document.getElementById('cd-mins');
+    const cdSecs = document.getElementById('cd-secs');
+    const teleCd = document.getElementById('tele-countdown');
+    if (cdDays) cdDays.textContent = pad(days);
+    if (cdHours) cdHours.textContent = pad(hours);
+    if (cdMins) cdMins.textContent = pad(mins);
+    if (cdSecs) cdSecs.textContent = pad(secs);
+    if (teleCd) teleCd.textContent = `${pad(days)}D ${pad(hours)}H ${pad(mins)}M`;
+  }
+  update();
+  setInterval(update, 1000);
+}
+
+// ===========================
+// PRIVATE GARAGES
+// ===========================
+function openCreateGarage() {
+  document.getElementById('modal-create-garage').classList.add('open');
+}
+
+function selectIcon(el, icon) {
+  selectedIcon = icon;
+  document.querySelectorAll('#icon-selector > div').forEach(d => d.style.borderColor = 'var(--border)');
+  el.style.borderColor = 'var(--neon-yellow)';
+}
+
+function createGarage() {
+  const name = document.getElementById('new-garage-name').value.trim();
+  if (!name) { showToast('⚠️','Error','Please give your garage a name.'); return; }
+  const list = document.getElementById('private-garage-list');
+  const div = document.createElement('div');
+  div.className = 'private-garage-item';
+  div.style.animation = 'fadeIn 0.3s ease';
+  div.innerHTML = `
+    <div class="garage-icon">${selectedIcon}</div>
+    <div class="garage-item-info">
+      <div class="garage-item-name">${name}</div>
+      <div class="garage-item-meta">1 member · Just created</div>
+    </div>
+    <div style="font-size:0.75rem;color:var(--neon-purple-bright);font-weight:700;">OWNER</div>
+  `;
+  list.insertBefore(div, list.firstChild);
+  closeModal('modal-create-garage');
+  document.getElementById('new-garage-name').value = '';
+  showToast('🏗️','Garage Built!',`${name} is ready. Invite your crew!`);
+}
+
+// ===========================
+// TEAM CHANGE
+// ===========================
+function openTeamChange() {
+  document.getElementById('modal-change-team').classList.add('open');
+}
+
+function changeTeam(name, color, el) {
+  currentUser.team = name;
+  currentUser.teamColor = color;
+  document.querySelectorAll('#change-team-grid .team-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  updateUserUI();
+  buildGarages();
+  closeModal('modal-change-team');
+  showToast('🔧','Team Changed!',`Welcome to the ${name} Garage!`);
+}
+
+// ===========================
+// MODALS
+// ===========================
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ===========================
+// TOAST
+// ===========================
+let toastTimeout;
+function showToast(icon, title, desc) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-desc').textContent = desc;
+  toast.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 4000);
+}
+
+// ===========================
+// LOGOUT
+// ===========================
+function handleLogout() {
+  currentUser = null;
+  selectedTeam = null;
+  selectedTeamColor = null;
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').classList.remove('visible');
+  showScreen('screen-auth');
+  switchAuthTab('login');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ===========================
+// MOBILE SIDEBAR (no-op on desktop — sidebar always visible via CSS)
+// ===========================
+function toggleSidebar() {
+  // Only relevant if sidebar somehow needs toggling (shouldn't be called on desktop)
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+// Mobile bottom nav handled directly by navigateTo()
+
+// ===========================
+// KEYBOARD
+// ===========================
+document.getElementById('dm-text-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendDM();
+});
+</script>
+</body>
+</html>
